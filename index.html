@@ -10,10 +10,9 @@
         flex-direction: row;
       }
       .logo {
-        background-image: url('Union.png');
-        width: 100px;
-        background-repeat: no-repeat;
-        height: 50px;
+        width: 150px;
+        height: 150px;
+        filter: url(#displacementFilter);
         background-size: contain;
       }
       .catalog {
@@ -24,9 +23,9 @@
         width: 60vw;
       }
       .card {
-        width: 130px;
+        width: 400px;
 
-        height: 100px;
+        height: 350px;
         position: relative;
       }
 
@@ -48,7 +47,32 @@
   </head>
   <body>
     <div class="header">
-      <div class="logo"></div>
+      <div class="logo-container">
+        <svg width="0" height="0">
+          <filter id="displacementFilter">
+            <!-- Создаем турбулентность (шум), который изменяет картинку -->
+            <feTurbulence
+              id="turbulence"
+              type="fractalNoise"
+              baseFrequency="0.03"
+              numOctaves="4"
+              result="turbulence"
+            />
+
+            <!-- Двигаем шум вверх/вниз, чтобы получалось "вытягивание" -->
+            <feOffset id="offset" dy="0" result="offset" />
+
+            <!-- Накладываем искажения -->
+            <feDisplacementMap
+              id="displacement"
+              in="SourceGraphic"
+              in2="turbulence"
+              scale="0"
+            />
+          </filter>
+        </svg>
+        <img src="Vector.png" class="logo" alt="Логотип" />
+      </div>
     </div>
     <div class="catalog">
       <div class="card">
@@ -79,6 +103,23 @@
     <script type="module">
       import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@2.4.0/+esm'
 
+      const turbulence = document.getElementById('turbulence')
+      const displacement = document.getElementById('displacement')
+
+      document.addEventListener('mousemove', (event) => {
+        const mouseX = event.clientX / window.innerWidth
+        const mouseY = event.clientY / window.innerHeight
+
+        const frequency = 0.015 + mouseX * 0.02
+        const scale = 5 + mouseY * 5
+
+        turbulence.setAttribute('baseFrequency', frequency)
+        displacement.setAttribute('scale', scale)
+      })
+
+      document.addEventListener('mouseleave', () => {
+        displacement.setAttribute('scale', 0)
+      })
       document.querySelectorAll('.card').forEach((card) => {
         const canvas = card.querySelector('.electric-canvas')
         const ctx = canvas.getContext('2d')
@@ -94,13 +135,13 @@
         function generateElectricPath() {
           ctx.clearRect(0, 0, canvas.width, canvas.height)
           ctx.strokeStyle = '#CAFF4F'
-          ctx.lineWidth = 2
+          ctx.lineWidth = 5
           ctx.shadowColor = '#CAFF4F'
           ctx.shadowBlur = 12
 
           let points = []
           let numPoints = 600
-          let padding = 5 // отступ
+          let padding = 18 // отступ
 
           for (let i = 0; i < numPoints; i++) {
             let progress = i / numPoints
@@ -136,12 +177,12 @@
                   4
             }
 
-            let noiseFactorX = noise.noise2D(i * 0.0103, time * 0.005) * 60 // шум
+            let noiseFactorX = noise.noise2D(i * 0.0103, time * 0.005) * 150 // шум
             let noiseFactorY =
-              noise.noise2D(i * 0.0103, time * 0.005 + 100) * 120
+              noise.noise2D(i * 0.0103, time * 0.005 + 100) * 150
 
             // скачки для мелкой детализации
-            if (Math.random() < 0.1) {
+            if (Math.random() < 0.2) {
               noiseFactorX *= 1.1
               noiseFactorY *= 1.1
             }
